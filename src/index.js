@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./artmoveis-app";
+import App from "./artmoveis-app.jsx";
 import "./index.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
