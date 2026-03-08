@@ -206,10 +206,10 @@ function QuickLinks({onNav}){
   );
 }
 
-function CategoryBar({active,onSelect}){
+function CategoryBar({active,onSelect,cats}){
   return(
     <div className="flex overflow-x-auto px-4 border-b border-gray-100">
-      {CATS.map(c=>(
+      {cats.map(c=>(
         <button key={c} onClick={()=>onSelect(c)} className={"flex-shrink-0 pb-2 px-1 mr-4 text-sm font-semibold whitespace-nowrap transition-colors "+(active===c?"text-red-600 border-b-2 border-red-600":"text-gray-400")}>{c}</button>
       ))}
     </div>
@@ -260,13 +260,14 @@ function GreenBanner(){
 function HomePage({products,onProduct,onCart,onNav,blingOk,favs,onFav}){
   const[cat,setCat]=useState("Todos");
   const shuffled=useMemo(()=>[...products].sort(()=>Math.random()-.5),[products]);
+  const dynCats=useMemo(()=>["Todos",...Array.from(new Set(products.map(p=>p.category).filter(Boolean))).sort(),"Promoções e descontos"],[products]);
   const filtered=cat==="Todos"?products:cat==="Promoções e descontos"?products.filter(p=>off(p.price,p.oldPrice)>=20):products.filter(p=>p.category===cat);
   const cp={onPress:onProduct,onCart,favs,onFav};
   return(
     <div className="space-y-4 pb-4">
       <BannerCarousel/>
       <QuickLinks onNav={onNav}/>
-      <CategoryBar active={cat} onSelect={setCat}/>
+      <CategoryBar active={cat} onSelect={setCat} cats={dynCats}/>
       {blingOk&&<div className="mx-4 flex items-center gap-2 bg-green-50 border border-green-100 rounded-2xl px-3 py-2"><CheckCircle size={13} className="text-green-600 shrink-0"/><p className="text-xs text-green-700 font-semibold">Produtos sincronizados do Bling</p></div>}
       {cat==="Todos"?(
         <>
