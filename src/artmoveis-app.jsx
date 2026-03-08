@@ -317,14 +317,19 @@ function ProductPage({product,allProducts,onCart,firstPurchase,favs,onFav}){
   const[cep,setCep]=useState("");const[ship,setShip]=useState(null);
   const[ur,setUr]=useState(0);const[hov,setHov]=useState(0);const[comment,setCmt]=useState("");
   const[reviews,setRevs]=useState([{user:"Maria S.",stars:5,text:"Lindo demais! Chegou antes do prazo."},{user:"João P.",stars:4,text:"Ótima qualidade, montagem fácil."}]);
+  const[fullImage,setFullImage]=useState(product.image);
   const o=off(product.price,product.oldPrice);const isFav=favs?.includes(product.id);
   const related=useMemo(()=>[...allProducts].filter(p=>p.id!==product.id).sort(()=>Math.random()-.5).slice(0,10),[product.id,allProducts]);
   const chkCep=()=>{const c=cep.replace(/\D/g,"");if(c.length<8)return alert("CEP inválido");if(!c.startsWith("6"))return alert("Só CEPs do Ceará!");setShip(shipCalc(c,firstPurchase));};
   const submitRev=()=>{if(!ur)return alert("Selecione uma nota");if(!comment.trim())return alert("Escreva seu comentário");setRevs(r=>[...r,{user:"Você",stars:ur,text:comment,date:new Date().toLocaleDateString("pt-BR")}]);setUr(0);setCmt("");};
+  useEffect(()=>{
+    setFullImage(product.image);
+    bGet(`/produtos/${product.id}`).then(d=>{ if(d.ok&&d.image) setFullImage(d.image); }).catch(()=>{});
+  },[product.id]);
   return(
     <div className="pb-28" style={{animation:"fadeInUp .3s ease"}}>
       <div className="relative">
-        <img src={product.image} alt={product.name} className="w-full h-64 object-cover" onError={e=>e.target.src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80"}/>
+        <img src={fullImage} alt={product.name} className="w-full h-64 object-cover" onError={e=>e.target.src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80"}/>
         <button onClick={()=>onFav(product.id)} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 shadow flex items-center justify-center active:scale-90 transition-transform"><Heart size={20}fill={isFav?"#ef4444":"none"}stroke={isFav?"#ef4444":"#9ca3af"}/></button>
         {product.isNew&&<span className="absolute top-4 left-4 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full">Novidade</span>}
       </div>
