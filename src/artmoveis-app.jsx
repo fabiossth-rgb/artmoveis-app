@@ -366,21 +366,21 @@ function ProductPage({product,allProducts,onCart,firstPurchase,favs,onFav}){
   const[cep,setCep]=useState("");const[ship,setShip]=useState(null);
   const[ur,setUr]=useState(0);const[hov,setHov]=useState(0);const[comment,setCmt]=useState("");
   const[reviews,setRevs]=useState([{user:"Maria S.",stars:5,text:"Lindo demais! Chegou antes do prazo."},{user:"João P.",stars:4,text:"Ótima qualidade, montagem fácil."}]);
-  const[images,setImages]=useState([product.image]);
+  const initImgs=product.images&&Array.isArray(product.images)&&product.images.length>1?product.images:[product.image];
+  const[images,setImages]=useState(initImgs);
   const[activeImg,setActiveImg]=useState(0);
   const o=off(product.price,product.oldPrice);const isFav=favs?.includes(product.id);
   const related=useMemo(()=>[...allProducts].filter(p=>p.id!==product.id).sort(()=>Math.random()-.5).slice(0,10),[product.id,allProducts]);
   const chkCep=()=>{const c=cep.replace(/\D/g,"");if(c.length<8)return alert("CEP inválido");if(!c.startsWith("6"))return alert("Só CEPs do Ceará!");setShip(shipCalc(c,firstPurchase));};
   const submitRev=()=>{if(!ur)return alert("Selecione uma nota");if(!comment.trim())return alert("Escreva seu comentário");setRevs(r=>[...r,{user:"Você",stars:ur,text:comment,date:new Date().toLocaleDateString("pt-BR")}]);setUr(0);setCmt("");};
   useEffect(()=>{
-    setImages([product.image]);
+    const base=product.images&&Array.isArray(product.images)&&product.images.length>1?product.images:[product.image];
+    setImages(base);
     setActiveImg(0);
     bGet(`/produtos/${product.id}`).then(d=>{
-      if(d.ok){
-        const imgs=[product.image];
-        if(d.image&&d.image!==product.image) imgs.push(d.image);
-        if(d.images&&Array.isArray(d.images)) d.images.forEach(x=>{if(x&&!imgs.includes(x))imgs.push(x);});
-        setImages(imgs);
+      if(d.ok&&d.images&&Array.isArray(d.images)&&d.images.length>0){
+        const merged=[...new Set([...d.images,...base].filter(Boolean))];
+        if(merged.length>1) setImages(merged);
       }
     }).catch(()=>{});
   },[product.id]);
