@@ -134,7 +134,7 @@ function PCard({p,onPress,onCart,favs,onFav}){
         <p className="text-[11px] text-gray-600 line-clamp-2 leading-snug mb-1">{p.name}</p>
         <p className="text-[10px] text-gray-400 line-through">{fmt(p.oldPrice)}</p>
         <p className="text-sm font-black text-red-600 leading-tight">{fmt(p.price)}</p>
-        <button onClick={e=>{e.stopPropagation();onCart(p);}} className="mt-1.5 w-full text-white text-[11px] py-1.5 rounded-xl font-bold active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}>Comprar agora</button>
+        <button onClick={e=>{e.stopPropagation();onCart(p,true);}} className="mt-1.5 w-full text-white text-[11px] py-1.5 rounded-xl font-bold active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}>Comprar agora</button>
       </div>
     </div>
   );
@@ -154,7 +154,7 @@ function GCard({p,onPress,onCart,favs,onFav,imgH=120}){
         <p className="text-xs text-gray-600 line-clamp-2 font-medium leading-snug">{p.name}</p>
         <p className="text-[10px] text-gray-400 line-through">{fmt(p.oldPrice)}</p>
         <p className="text-sm font-black text-red-600">{fmt(p.price)}</p>
-        <button onClick={e=>{e.stopPropagation();onCart(p);}} className="mt-1.5 w-full text-white text-[11px] py-1.5 rounded-xl font-bold active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}>Comprar agora</button>
+        <button onClick={e=>{e.stopPropagation();onCart(p,true);}} className="mt-1.5 w-full text-white text-[11px] py-1.5 rounded-xl font-bold active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}>Comprar agora</button>
       </div>
     </div>
   );
@@ -330,7 +330,7 @@ function GreenBanner(){
 function CategoryMinibanners({onNav}){
   return(
     <div className="flex gap-3 px-4">
-      <button onClick={()=>onNav&&onNav("cat_box")} className="flex-1 rounded-2xl overflow-hidden shadow-sm active:scale-[0.97] transition-transform relative" style={{background:"linear-gradient(135deg,#1a1a2e,#16213e)",minHeight:80}}>
+      <button onClick={()=>onNav&&onNav("cat_box")} className="flex-1 rounded-2xl overflow-hidden shadow-sm active:scale-[0.97] transition-transform relative" style={{background:"linear-gradient(135deg,#e91e7a,#f06292)",minHeight:80}}>
         <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
           <div style={{position:"absolute",top:0,left:0,width:"50%",height:"100%",background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent)",animation:"shimmer 3.5s ease infinite"}}/>
         </div>
@@ -376,7 +376,7 @@ function HomePage({products,onProduct,onCart,onNav,onNav2,favs,onFav,initCat="To
       
       {cat==="Todos"?(
         <>
-          <Shelf title="Mais Vendidos" items={[...products].sort((a,b)=>b.sold-a.sold||(Math.random()-.5))} {...cp}/>
+          <Shelf title="Mais Vendidos" items={[...products].sort((a,b)=>b.sold-a.sold)} {...cp}/>
           <CategoryMinibanners onNav={onNav2||onNav}/>
           <Shelf title="Maiores Descontos" items={[...products].sort((a,b)=>off(b.price,b.oldPrice)-off(a.price,a.oldPrice))} {...cp}/>
           <Shelf title="Oferta do Dia" TitleExtra={Countdown} items={shuffled} {...cp}/>
@@ -488,7 +488,7 @@ function ProductPage({product,allProducts,onCart,onProduct,firstPurchase,favs,on
   const[showCheckout,setShowCheckout]=useState(false);
   const trayUrl=product.link||`https://www.lojasartmoveis.com.br/busca?q=${encodeURIComponent(product.name)}`;
   const o=off(product.price,product.oldPrice);const isFav=favs?.includes(product.id);
-  const related=useMemo(()=>[...allProducts].filter(p=>p.id!==product.id).sort(()=>Math.random()-.5).slice(0,10),[product.id,allProducts]);
+  const related=useMemo(()=>{const seed=typeof product.id==='number'?product.id:parseInt(String(product.id).replace(/\D/g,'')||'1');const seededSort=(a,b)=>{const ha=(a.id*2654435761)>>>0;const hb=(b.id*2654435761)>>>0;return((ha^seed)>>>0)-((hb^seed)>>>0);};return[...allProducts].filter(p=>p.id!==product.id).sort(seededSort).slice(0,10);},[product.id,allProducts]);
   const chkCep=()=>{const c=cep.replace(/\D/g,"");if(c.length<8)return alert("CEP inválido");if(!c.startsWith("6"))return alert("Só CEPs do Ceará!");setShip(shipCalc(c,firstPurchase));};
   const submitRev=()=>{if(!ur)return alert("Selecione uma nota");if(!comment.trim())return alert("Escreva seu comentário");setRevs(r=>[...r,{user:"Você",stars:ur,text:comment,date:new Date().toLocaleDateString("pt-BR")}]);setUr(0);setCmt("");};
   useEffect(()=>{
@@ -824,7 +824,7 @@ function PoliciesPage(){
   );
 }
 
-function MenuPage({onNav,auth}){
+function MenuPage({onNav,auth,bling,onBling}){
   return(
     <div className="px-4 pb-24 mt-2 space-y-3">
       {auth.user
@@ -881,7 +881,7 @@ export default function App(){
 
   const go=id=>{if(id==="login"){setShowAuth(true);return;}setPage(id);if(["home","cart","favorites","menu"].includes(id))setNav(id);scrollRef.current?.scrollTo(0,0);setActiveQ("");};
   const goProduct=p=>{setSel(p);setPage("product");scrollRef.current?.scrollTo(0,0);};
-  const addCart=p=>{setCart(c=>{const ex=c.find(i=>i.id===p.id);const next=ex?c.map(i=>i.id===p.id&&i.qty<5?{...i,qty:i.qty+1}:i):[...c,{...p,qty:1}];LS.set("art_cart",next);return next;});};
+  const addCart=(p,goToCheckout)=>{setCart(c=>{const ex=c.find(i=>i.id===p.id);const next=ex?c.map(i=>i.id===p.id&&i.qty<5?{...i,qty:i.qty+1}:i):[...c,{...p,qty:1}];LS.set("art_cart",next);return next;});if(goToCheckout){setPage("cart");setNav("cart");scrollRef.current?.scrollTo(0,0);}};
   const toggleFav=id=>{setFavs(f=>{const next=f.includes(id)?f.filter(i=>i!==id):[...f,id];LS.set("art_favs",next);return next;});};
   const handleNav=id=>{
     if(id==="live"){window.open("https://www.instagram.com/lojasartmoveis","_blank");return;}
@@ -907,7 +907,7 @@ export default function App(){
     if(page==="orders")return<OrdersPage orders={auth.orders}/>;
     if(page==="user")return<UserPage auth={auth}onNav={go}/>;
     if(page==="policies")return<PoliciesPage/>;
-    if(page==="menu")return<MenuPage onNav={go}auth={auth}/>;
+    if(page==="menu")return<MenuPage onNav={go}auth={auth}bling={bling}onBling={()=>setShowBling(true)}/>;
     return<HomePage products={bling.products}onProduct={goProduct}onCart={addCart}onNav={handleNav}onNav2={go}initCat={catFilter}onCatUsed={()=>setCatFilter("Todos")}{...cp}/>;
   };
 
