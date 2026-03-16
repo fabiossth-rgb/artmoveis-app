@@ -502,8 +502,6 @@ function ProductPage({product,allProducts,onCart,onProduct,firstPurchase,favs,on
       }
     }).catch(()=>{});
   },[product.id]);
-  return(
-    <div className="pb-28" style={{animation:"fadeInUp .3s ease"}}>
   const[lightbox,setLightbox]=useState(false);
   return(<>
   {showCheckout&&<TrayCheckout url={trayUrl} onClose={()=>setShowCheckout(false)}/>}
