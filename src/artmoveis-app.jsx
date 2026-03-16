@@ -134,7 +134,7 @@ function PCard({p,onPress,onCart,favs,onFav}){
         <p className="text-[11px] text-gray-600 line-clamp-2 leading-snug mb-1">{p.name}</p>
         <p className="text-[10px] text-gray-400 line-through">{fmt(p.oldPrice)}</p>
         <p className="text-sm font-black text-red-600 leading-tight">{fmt(p.price)}</p>
-        <button onClick={e=>{e.stopPropagation();onCart(p,true);}} className="mt-1.5 w-full text-white text-[11px] py-1.5 rounded-xl font-bold active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}>Comprar agora</button>
+        <button onClick={e=>{e.stopPropagation();onPress(p);}} className="mt-1.5 w-full text-white text-[11px] py-1.5 rounded-xl font-bold active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}>Comprar agora</button>
       </div>
     </div>
   );
@@ -154,7 +154,7 @@ function GCard({p,onPress,onCart,favs,onFav,imgH=120}){
         <p className="text-xs text-gray-600 line-clamp-2 font-medium leading-snug">{p.name}</p>
         <p className="text-[10px] text-gray-400 line-through">{fmt(p.oldPrice)}</p>
         <p className="text-sm font-black text-red-600">{fmt(p.price)}</p>
-        <button onClick={e=>{e.stopPropagation();onCart(p,true);}} className="mt-1.5 w-full text-white text-[11px] py-1.5 rounded-xl font-bold active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}>Comprar agora</button>
+        <button onClick={e=>{e.stopPropagation();onPress(p);}} className="mt-1.5 w-full text-white text-[11px] py-1.5 rounded-xl font-bold active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}>Comprar agora</button>
       </div>
     </div>
   );
@@ -296,7 +296,8 @@ function InstaBanner(){
 
 function StoreBanner(){
   return(
-    <button onClick={()=>window.open("https://maps.app.goo.gl/rLC7QmFXMW7JVjms8","_blank")} className="mx-4 rounded-3xl overflow-hidden shadow-lg active:scale-[0.98] transition-transform" style={{background:"linear-gradient(135deg,#1e3a5f,#2563eb)",minHeight:120}}>
+    <div className="px-4">
+    <button onClick={()=>window.open("https://maps.app.goo.gl/rLC7QmFXMW7JVjms8","_blank")} className="w-full rounded-3xl overflow-hidden shadow-lg active:scale-[0.98] transition-transform text-left" style={{background:"linear-gradient(135deg,#1e3a5f,#2563eb)",minHeight:120}}>
       <div className="relative overflow-hidden h-full">
         <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
           <div style={{position:"absolute",top:0,left:0,width:"40%",height:"100%",background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent)",animation:"shimmer 3s ease infinite"}}/>
@@ -313,6 +314,7 @@ function StoreBanner(){
         <div className="absolute bottom-2.5 right-4 flex gap-1.5"><div style={{width:16,height:6,borderRadius:3,background:"white"}}/><div style={{width:6,height:6,borderRadius:3,background:"rgba(255,255,255,0.4)"}}/><div style={{width:6,height:6,borderRadius:3,background:"rgba(255,255,255,0.4)"}}/></div>
       </div>
     </button>
+    </div>
   );
 }
 
@@ -880,7 +882,7 @@ export default function App(){
   const scrollRef=useRef(null);
 
   const go=id=>{if(id==="login"){setShowAuth(true);return;}setPage(id);if(["home","cart","favorites","menu"].includes(id))setNav(id);scrollRef.current?.scrollTo(0,0);setActiveQ("");};
-  const goProduct=p=>{setSel(p);setPage("product");scrollRef.current?.scrollTo(0,0);};
+  const goProduct=p=>{setSel(p);setPage("product");scrollRef.current?.scrollTo({top:0,behavior:'instant'});window.scrollTo({top:0,behavior:'instant'});};
   const addCart=(p,goToCheckout)=>{setCart(c=>{const ex=c.find(i=>i.id===p.id);const next=ex?c.map(i=>i.id===p.id&&i.qty<5?{...i,qty:i.qty+1}:i):[...c,{...p,qty:1}];LS.set("art_cart",next);return next;});if(goToCheckout){setPage("cart");setNav("cart");scrollRef.current?.scrollTo(0,0);}};
   const toggleFav=id=>{setFavs(f=>{const next=f.includes(id)?f.filter(i=>i!==id):[...f,id];LS.set("art_favs",next);return next;});};
   const handleNav=id=>{
@@ -896,7 +898,7 @@ export default function App(){
 
   const renderPage=()=>{
     if(activeQ&&page==="search")return<SearchPage query={activeQ}products={bling.products}onProduct={goProduct}onCart={addCart}{...cp}/>;
-    if(page==="product"&&sel)return<ProductPage product={sel}allProducts={bling.products}onCart={addCart}onProduct={goProduct}firstPurchase={firstBuy}{...cp}/>;
+    if(page==="product"&&sel)return<ProductPage key={sel.id} product={sel}allProducts={bling.products}onCart={addCart}onProduct={goProduct}firstPurchase={firstBuy}{...cp}/>;
     if(page==="offers")return<OffersPage products={bling.products}onProduct={goProduct}onCart={addCart}/>;
     if(page==="coupons")return<CouponsPage/>;
     if(page==="bestsellers")return<BestSellersPage products={bling.products}onProduct={goProduct}/>;
