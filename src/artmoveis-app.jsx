@@ -420,6 +420,33 @@ function SearchPage({query,products,onProduct,onCart,favs,onFav}){
   );
 }
 
+function TrayCheckout({url, onClose}){
+  return(
+    <div className="fixed inset-0 z-[400] flex flex-col" style={{background:"#fff",animation:"fadeIn .2s ease"}}>
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}>
+        <button onClick={onClose} className="text-white active:scale-90 transition-transform p-1"><ArrowLeft size={22}/></button>
+        <div className="flex-1">
+          <p className="text-white font-black text-sm leading-tight">Finalizar Compra</p>
+          <p className="text-white/70 text-[10px]">lojasartmoveis.com.br</p>
+        </div>
+        <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full">
+          <ShieldCheck size={10} className="text-white"/>
+          <span className="text-white text-[10px] font-bold">Seguro</span>
+        </div>
+      </div>
+      <div className="flex-1 relative">
+        <iframe
+          src={url}
+          className="w-full h-full border-none"
+          style={{minHeight:"calc(100vh - 60px)"}}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+          title="Finalizar compra"
+        />
+      </div>
+    </div>
+  );
+}
+
 function SellerCode(){
   const[code,setCode]=useState("");const[ok,setOk]=useState(false);
   const apply=()=>{if(code.trim().length>=3){setOk(true);}};
@@ -458,6 +485,8 @@ function ProductPage({product,allProducts,onCart,onProduct,firstPurchase,favs,on
   const initImgs=product.images&&Array.isArray(product.images)&&product.images.length>1?product.images:[product.image];
   const[images,setImages]=useState(initImgs);
   const[activeImg,setActiveImg]=useState(0);
+  const[showCheckout,setShowCheckout]=useState(false);
+  const trayUrl=product.link||`https://www.lojasartmoveis.com.br/busca?q=${encodeURIComponent(product.name)}`;
   const o=off(product.price,product.oldPrice);const isFav=favs?.includes(product.id);
   const related=useMemo(()=>[...allProducts].filter(p=>p.id!==product.id).sort(()=>Math.random()-.5).slice(0,10),[product.id,allProducts]);
   const chkCep=()=>{const c=cep.replace(/\D/g,"");if(c.length<8)return alert("CEP inválido");if(!c.startsWith("6"))return alert("Só CEPs do Ceará!");setShip(shipCalc(c,firstPurchase));};
@@ -477,6 +506,7 @@ function ProductPage({product,allProducts,onCart,onProduct,firstPurchase,favs,on
     <div className="pb-28" style={{animation:"fadeInUp .3s ease"}}>
   const[lightbox,setLightbox]=useState(false);
   return(<>
+  {showCheckout&&<TrayCheckout url={trayUrl} onClose={()=>setShowCheckout(false)}/>}
   {lightbox&&(
     <div className="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center" style={{animation:"fadeIn .2s ease"}} onClick={()=>setLightbox(false)}>
       <img src={images[activeImg]||product.image} alt={product.name} className="max-w-full max-h-full object-contain" style={{maxHeight:"90vh"}}/>
@@ -512,8 +542,8 @@ function ProductPage({product,allProducts,onCart,onProduct,firstPurchase,favs,on
         <p className="text-xs text-green-600 font-semibold mt-1 flex items-center gap-1"><Truck size={12}/>Frete disponível para o Ceará</p>
       </div>
       <div className="mx-4 mt-3 flex gap-2">
-        <button onClick={()=>onCart(product)} className="flex-1 text-white py-4 rounded-2xl font-black text-sm shadow flex items-center justify-center gap-2 active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}><ShoppingCart size={18}/>Comprar agora</button>
-        <button onClick={()=>window.open(`https://wa.me/${WA}?text=Olá! Interesse no: ${product.name}`,"_blank")} className="px-4 py-4 rounded-2xl font-bold text-white active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#25d366,#128c7e)"}}><MessageCircle size={20}/></button>
+        <button onClick={()=>setShowCheckout(true)} className="flex-1 text-white py-4 rounded-2xl font-black text-sm shadow flex items-center justify-center gap-2 active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#b91c1c,#ef4444)"}}><ShoppingCart size={18}/>Comprar agora</button>
+        <button onClick={()=>window.open(`https://wa.me/${WA}?text=Olá! Tenho interesse no produto: ${product.name} - ${trayUrl}`,"_blank")} className="px-4 py-4 rounded-2xl font-bold text-white active:scale-95 transition-transform" style={{background:"linear-gradient(135deg,#25d366,#128c7e)"}}><MessageCircle size={20}/></button>
       </div>
       <div className="mx-4 mt-3 bg-white rounded-2xl p-4 shadow-sm"><p className="font-bold text-gray-800 text-sm mb-2">Descrição</p><p className="text-xs text-gray-500 leading-relaxed">{product.desc}</p></div>
       <div className="mx-4 mt-3 bg-white rounded-2xl p-4 shadow-sm space-y-3">
